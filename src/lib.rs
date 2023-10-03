@@ -1,36 +1,52 @@
-use std::ops::{Range, RangeBounds, Bound, RangeInclusive};
+pub mod operation;
 
-pub struct SegTree {
-    store: Vec<i64>,
-    len: usize
+use std::{
+    marker::PhantomData,
+    ops::{Bound, Range, RangeBounds, RangeInclusive},
+};
+
+use operation::Operation;
+
+pub struct SegTree<T, O> {
+    store: Vec<T>,
+    len: usize,
+    _op: PhantomData<O>,
 }
 
-impl SegTree {
-    pub fn new(v: Vec<i64>) -> Self {
+impl<T: Clone, O: Operation<T>> SegTree<T, O> {
+    pub fn new(v: Vec<T>) -> Self {
         let len = if v.is_empty() {
-            return Self { store: Vec::new(), len: 0 };
+            return Self {
+                store: Vec::new(),
+                len: 0,
+                _op: PhantomData,
+            };
         } else {
             2_f64.powf((v.len() as f64).log2() + 1.0).ceil() as usize - 1
         };
-        let mut store = vec![0; len];
+        let mut store = vec![O::zero(); len];
         Self::build(&v, &mut store, 1, v.len(), 1);
 
-        Self { store, len: v.len() }
+        Self {
+            store,
+            len: v.len(),
+            _op: PhantomData,
+        }
     }
 
-    fn build(v: &[i64], store: &mut [i64], s: usize, t: usize, p: usize) {
+    fn build(v: &[T], store: &mut [T], s: usize, t: usize, p: usize) {
         if s == t {
-            store[p - 1] = v[s - 1];
+            store[p - 1] = v[s - 1].clone();
         } else {
             let m = s + (t - s) / 2;
             Self::build(v, store, s, m, p * 2);
             Self::build(v, store, m + 1, t, p * 2 + 1);
-            store[p - 1] = store[p * 2 - 1] + store[p * 2];
+            store[p - 1] = O::combine(&store[p * 2 - 1], &store[p * 2]);
         }
     }
 
     /// Returns the sum of range (zero-indexed)
-    pub fn query(&self, range: impl RangeBounds<usize>) -> Option<i64> {
+    pub fn query(&self, range: impl RangeBounds<usize>) -> Option<T> {
         let range = {
             let start = match range.start_bound() {
                 Bound::Included(s) => *s,
@@ -52,17 +68,23 @@ impl SegTree {
         }
     }
 
-    fn get_range_sum(&self, cur: RangeInclusive<usize>, range: Range<usize>, p: usize) -> i64 {
+    fn get_range_sum(&self, cur: RangeInclusive<usize>, range: Range<usize>, p: usize) -> T {
         if range.contains(cur.start()) && range.contains(cur.end()) {
-            self.store[p - 1]
+            self.store[p - 1].clone()
         } else {
             let m = cur.start() + (cur.end() - cur.start()) / 2;
-            let mut sum = 0;
+            let mut sum = O::zero();
             if range.start <= m {
-                sum += self.get_range_sum(*cur.start()..=m, range.clone(), p * 2);
+                sum = O::combine(
+                    &sum,
+                    &self.get_range_sum(*cur.start()..=m, range.clone(), p * 2),
+                );
             }
             if range.end > m + 1 {
-                sum += self.get_range_sum(m + 1..=*cur.end(), range, p * 2 + 1);
+                sum = O::combine(
+                    &sum,
+                    &self.get_range_sum(m + 1..=*cur.end(), range.clone(), p * 2 + 1),
+                );
             }
 
             sum
@@ -72,26 +94,26 @@ impl SegTree {
 
 #[cfg(test)]
 mod test {
-    use crate::SegTree;
+    use crate::{operation::Add, SegTree};
 
     #[test]
     fn build() {
-        let tree = SegTree::new(vec![10, 11, 12, 13, 14]);
+        let tree = SegTree::<_, Add>::new(vec![10, 11, 12, 13, 14]);
         assert_eq!(tree.store, vec![60, 33, 27, 21, 12, 13, 14, 10, 11]);
-        let tree = SegTree::new(vec![4, 3, 2, 1, 2, 3, 4]);
+        let tree = SegTree::<_, Add>::new(vec![4, 3, 2, 1, 2, 3, 4]);
         assert_eq!(tree.store, vec![19, 10, 9, 7, 3, 5, 4, 4, 3, 2, 1, 2, 3]);
-        let _ = SegTree::new(vec![]);
+        let _ = SegTree::<_, Add>::new(vec![]);
     }
 
     #[test]
     fn range_sum() {
-        let tree = SegTree::new(vec![10, 11, 12, 13, 14]);
+        let tree = SegTree::<_, Add>::new(vec![10, 11, 12, 13, 14]);
         assert_eq!(tree.query(3..5), Some(27));
         assert_eq!(tree.query(1..5), Some(50));
         assert_eq!(tree.query(..5), Some(60));
         assert_eq!(tree.query(..), Some(60));
         assert_eq!(tree.query(1..=3), Some(36));
-        let tree = SegTree::new(vec![]);
+        let tree = SegTree::<_, Add>::new(vec![]);
         assert_eq!(tree.query(..), None);
     }
 }
