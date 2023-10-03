@@ -26,7 +26,7 @@ impl SegTree {
     }
 
     /// Returns the sum of range (zero-indexed)
-    pub fn range_sum(&self, range: impl RangeBounds<usize>) -> Option<i64> {
+    pub fn query(&self, range: impl RangeBounds<usize>) -> Option<i64> {
         let range = {
             let start = match range.start_bound() {
                 Bound::Included(s) => *s,
@@ -81,10 +81,10 @@ mod test {
     #[test]
     fn range_sum() {
         let tree = SegTree::new(vec![10, 11, 12, 13, 14]);
-        assert_eq!(tree.range_sum(3..5), Some(27));
-        assert_eq!(tree.range_sum(1..5), Some(50));
-        assert_eq!(tree.range_sum(..5), Some(60));
-        assert_eq!(tree.range_sum(..), Some(60));
-        assert_eq!(tree.range_sum(1..=3), Some(36));
+        assert_eq!(tree.query(3..5), Some(27));
+        assert_eq!(tree.query(1..5), Some(50));
+        assert_eq!(tree.query(..5), Some(60));
+        assert_eq!(tree.query(..), Some(60));
+        assert_eq!(tree.query(1..=3), Some(36));
     }
 }
