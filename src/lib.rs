@@ -7,7 +7,11 @@ pub struct SegTree {
 
 impl SegTree {
     pub fn new(v: Vec<i64>) -> Self {
-        let len = 2_f64.powf((v.len() as f64).log2() + 1.0).ceil() as usize - 1;
+        let len = if v.is_empty() {
+            return Self { store: Vec::new(), len: 0 };
+        } else {
+            2_f64.powf((v.len() as f64).log2() + 1.0).ceil() as usize - 1
+        };
         let mut store = vec![0; len];
         Self::build(&v, &mut store, 1, v.len(), 1);
 
@@ -76,6 +80,7 @@ mod test {
         assert_eq!(tree.store, vec![60, 33, 27, 21, 12, 13, 14, 10, 11]);
         let tree = SegTree::new(vec![4, 3, 2, 1, 2, 3, 4]);
         assert_eq!(tree.store, vec![19, 10, 9, 7, 3, 5, 4, 4, 3, 2, 1, 2, 3]);
+        let _ = SegTree::new(vec![]);
     }
 
     #[test]
@@ -86,5 +91,7 @@ mod test {
         assert_eq!(tree.query(..5), Some(60));
         assert_eq!(tree.query(..), Some(60));
         assert_eq!(tree.query(1..=3), Some(36));
+        let tree = SegTree::new(vec![]);
+        assert_eq!(tree.query(..), None);
     }
 }
