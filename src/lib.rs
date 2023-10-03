@@ -7,7 +7,7 @@ pub struct SegTree {
 
 impl SegTree {
     pub fn new(v: Vec<i64>) -> Self {
-        let len = 2_f64.powf((v.len() as f64).log2() + 1.0).ceil() as usize;
+        let len = 2_f64.powf((v.len() as f64).log2() + 1.0).ceil() as usize - 1;
         let mut store = vec![0; len];
         Self::build(&v, &mut store, 1, v.len(), 1);
 
@@ -16,12 +16,12 @@ impl SegTree {
 
     fn build(v: &[i64], store: &mut [i64], s: usize, t: usize, p: usize) {
         if s == t {
-            store[p] = v[s - 1];
+            store[p - 1] = v[s - 1];
         } else {
             let m = s + (t - s) / 2;
             Self::build(v, store, s, m, p * 2);
             Self::build(v, store, m + 1, t, p * 2 + 1);
-            store[p] = store[p * 2] + store[p * 2 + 1];
+            store[p - 1] = store[p * 2 - 1] + store[p * 2];
         }
     }
 
@@ -35,7 +35,7 @@ impl SegTree {
 
     fn get_range_sum(&self, start: usize, end: usize, range: Range<usize>, p: usize) -> i64 {
         if range.contains(&start) && range.contains(&end) {
-            self.store[p]
+            self.store[p - 1]
         } else {
             let m = start + (end - start) / 2;
             let mut sum = 0;
@@ -58,7 +58,9 @@ mod test {
     #[test]
     fn build() {
         let tree = SegTree::new(vec![10, 11, 12, 13, 14]);
-        assert_eq!(tree.store, vec![0, 60, 33, 27, 21, 12, 13, 14, 10, 11]);
+        assert_eq!(tree.store, vec![60, 33, 27, 21, 12, 13, 14, 10, 11]);
+        let tree = SegTree::new(vec![4, 3, 2, 1, 2, 3, 4]);
+        assert_eq!(tree.store, vec![19, 10, 9, 7, 3, 5, 4, 4, 3, 2, 1, 2, 3]);
     }
 
     #[test]
