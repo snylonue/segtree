@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::ops::{Range, RangeBounds, Bound};
 
 pub struct SegTree {
     store: Vec<i64>,
@@ -25,11 +25,26 @@ impl SegTree {
         }
     }
 
-    pub fn range_sum(&self, range: Range<usize>) -> Option<i64> {
-        if range.is_empty() || range.end > self.len + 1 {
+    /// Returns the sum of range (zero-indexed)
+    pub fn range_sum(&self, range: impl RangeBounds<usize>) -> Option<i64> {
+        let range = {
+            let start = match range.start_bound() {
+                Bound::Included(s) => *s,
+                Bound::Excluded(s) => s + 1,
+                Bound::Unbounded => 0,
+            };
+            let end = match range.end_bound() {
+                Bound::Included(e) => e + 1,
+                Bound::Excluded(e) => *e,
+                Bound::Unbounded => self.len,
+            };
+            start..end
+        };
+
+        if range.is_empty() || range.end > self.len {
             None
         } else {
-            Some(self.get_range_sum(1, self.len, range, 1))
+            Some(self.get_range_sum(0, self.len - 1, range, 1))
         }
     }
 
@@ -42,7 +57,6 @@ impl SegTree {
             if range.start <= m {
                 sum += self.get_range_sum(start, m, range.clone(), p * 2);
             }
-            if range.end > m {
             if range.end > m + 1 {
                 sum += self.get_range_sum(m + 1, end, range, p * 2 + 1);
             }
@@ -67,7 +81,10 @@ mod test {
     #[test]
     fn range_sum() {
         let tree = SegTree::new(vec![10, 11, 12, 13, 14]);
-        assert_eq!(tree.range_sum(3..6), Some(39));
-        assert_eq!(tree.range_sum(1..6), Some(60));
+        assert_eq!(tree.range_sum(3..5), Some(27));
+        assert_eq!(tree.range_sum(1..5), Some(50));
+        assert_eq!(tree.range_sum(..5), Some(60));
+        assert_eq!(tree.range_sum(..), Some(60));
+        assert_eq!(tree.range_sum(1..=3), Some(36));
     }
 }
