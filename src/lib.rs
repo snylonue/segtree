@@ -1,4 +1,4 @@
-use std::ops::{Range, RangeBounds, Bound};
+use std::ops::{Range, RangeBounds, Bound, RangeInclusive};
 
 pub struct SegTree {
     store: Vec<i64>,
@@ -48,21 +48,21 @@ impl SegTree {
         if range.is_empty() || range.end > self.len {
             None
         } else {
-            Some(self.get_range_sum(0, self.len - 1, range, 1))
+            Some(self.get_range_sum(0..=self.len - 1, range, 1))
         }
     }
 
-    fn get_range_sum(&self, start: usize, end: usize, range: Range<usize>, p: usize) -> i64 {
-        if range.contains(&start) && range.contains(&end) {
+    fn get_range_sum(&self, cur: RangeInclusive<usize>, range: Range<usize>, p: usize) -> i64 {
+        if range.contains(cur.start()) && range.contains(cur.end()) {
             self.store[p - 1]
         } else {
-            let m = start + (end - start) / 2;
+            let m = cur.start() + (cur.end() - cur.start()) / 2;
             let mut sum = 0;
             if range.start <= m {
-                sum += self.get_range_sum(start, m, range.clone(), p * 2);
+                sum += self.get_range_sum(*cur.start()..=m, range.clone(), p * 2);
             }
             if range.end > m + 1 {
-                sum += self.get_range_sum(m + 1, end, range, p * 2 + 1);
+                sum += self.get_range_sum(m + 1..=*cur.end(), range, p * 2 + 1);
             }
 
             sum
