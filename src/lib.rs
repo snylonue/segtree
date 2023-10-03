@@ -43,6 +43,7 @@ impl SegTree {
                 sum += self.get_range_sum(start, m, range.clone(), p * 2);
             }
             if range.end > m {
+            if range.end > m + 1 {
                 sum += self.get_range_sum(m + 1, end, range, p * 2 + 1);
             }
 
