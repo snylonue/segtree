@@ -1,4 +1,4 @@
-use num_traits::Zero;
+use num_traits::{One, Zero};
 
 pub trait Operation<T> {
     fn zero() -> T;
@@ -17,5 +17,20 @@ where
 
     fn combine(lhs: &N, rhs: &N) -> N {
         lhs + rhs
+    }
+}
+
+pub struct Product;
+
+impl<N: One> Operation<N> for Product
+where
+    for<'a> &'a N: std::ops::Mul<Output = N>,
+{
+    fn zero() -> N {
+        N::one()
+    }
+
+    fn combine(lhs: &N, rhs: &N) -> N {
+        lhs * rhs
     }
 }
