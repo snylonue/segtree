@@ -90,6 +90,41 @@ impl<T: Clone, O: Operation<T>> SegTree<T, O> {
             sum
         }
     }
+
+    pub fn update(&mut self, range: impl RangeBounds<usize>, val: T) {
+        let range = {
+            let start = match range.start_bound() {
+                Bound::Included(s) => *s,
+                Bound::Excluded(s) => s + 1,
+                Bound::Unbounded => 0,
+            };
+            let end = match range.end_bound() {
+                Bound::Included(e) => e + 1,
+                Bound::Excluded(e) => *e,
+                Bound::Unbounded => self.len,
+            };
+            start..end
+        };
+
+        if !(range.is_empty() || range.end > self.len) {
+            self.update_impl(0..=self.len - 1, range, 1, &val)
+        }
+    }
+
+    fn update_impl(&mut self, cur: RangeInclusive<usize>, range: Range<usize>, p: usize, val: &T) {
+        if cur.start() == cur.end() {
+            self.store[p - 1] = O::combine(&self.store[p - 1], val);
+            return;
+        }
+        let m = cur.start() + (cur.end() - cur.start()) / 2;
+        if m >= range.start {
+            self.update_impl(*cur.start()..=m, range.clone(), p * 2, val);
+        }
+        if m + 1 < range.end {
+            self.update_impl(m + 1..=*cur.end(), range, p * 2 + 1, val);
+        }
+        self.store[p - 1] = O::combine(&self.store[p * 2 - 1], &self.store[p * 2]);
+    }
 }
 
 #[cfg(test)]
@@ -115,5 +150,14 @@ mod test {
         assert_eq!(tree.query(1..=3), Some(36));
         let tree = SegTree::<i32, Add>::new(vec![]);
         assert_eq!(tree.query(..), None);
+    }
+
+    #[test]
+    fn update() {
+        let mut tree = SegTree::<_, Add>::new(vec![10, 11, 12, 13, 14]);
+        tree.update(.., 3);
+        assert_eq!(tree.query(..), Some(13 + 14 + 15 + 16 + 17));
+        tree.update(..3, 1);
+        assert_eq!(tree.query(..), Some(14 + 15 + 16 + 16 + 17));
     }
 }
