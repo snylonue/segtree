@@ -102,7 +102,7 @@ mod test {
         assert_eq!(tree.store, vec![60, 33, 27, 21, 12, 13, 14, 10, 11]);
         let tree = SegTree::<_, Add>::new(vec![4, 3, 2, 1, 2, 3, 4]);
         assert_eq!(tree.store, vec![19, 10, 9, 7, 3, 5, 4, 4, 3, 2, 1, 2, 3]);
-        let _ = SegTree::<_, Add>::new(vec![]);
+        let _ = SegTree::<i32, Add>::new(vec![]);
     }
 
     #[test]
@@ -113,7 +113,7 @@ mod test {
         assert_eq!(tree.query(..5), Some(60));
         assert_eq!(tree.query(..), Some(60));
         assert_eq!(tree.query(1..=3), Some(36));
-        let tree = SegTree::<_, Add>::new(vec![]);
+        let tree = SegTree::<i32, Add>::new(vec![]);
         assert_eq!(tree.query(..), None);
     }
 }

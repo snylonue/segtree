@@ -1,3 +1,5 @@
+use num_traits::Zero;
+
 pub trait Operation<T> {
     fn zero() -> T;
     fn combine(lhs: &T, rhs: &T) -> T;
@@ -5,12 +7,15 @@ pub trait Operation<T> {
 
 pub struct Add;
 
-impl Operation<i64> for Add {
-    fn zero() -> i64 {
-        0
+impl<N: Zero> Operation<N> for Add
+where
+    for<'a> &'a N: std::ops::Add<Output = N>,
+{
+    fn zero() -> N {
+        N::zero()
     }
 
-    fn combine(lhs: &i64, rhs: &i64) -> i64 {
+    fn combine(lhs: &N, rhs: &N) -> N {
         lhs + rhs
     }
 }
