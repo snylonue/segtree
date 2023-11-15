@@ -24,7 +24,7 @@ impl<T: Clone, O: Operation<T>> SegTree<T, O> {
         } else {
             2_f64.powf((v.len() as f64).log2() + 1.0).ceil() as usize - 1
         };
-        let mut store = vec![O::zero(); len];
+        let mut store = vec![O::unit(); len];
         Self::build(&v, &mut store, 1, v.len(), 1);
 
         Self {
@@ -73,7 +73,7 @@ impl<T: Clone, O: Operation<T>> SegTree<T, O> {
             self.store[p - 1].clone()
         } else {
             let m = cur.start() + (cur.end() - cur.start()) / 2;
-            let mut sum = O::zero();
+            let mut sum = O::unit();
             if range.start <= m {
                 sum = O::combine(
                     &sum,
@@ -129,32 +129,32 @@ impl<T: Clone, O: Operation<T>> SegTree<T, O> {
 
 #[cfg(test)]
 mod test {
-    use crate::{operation::Add, SegTree};
+    use crate::{operation::Sum, SegTree};
 
     #[test]
     fn build() {
-        let tree = SegTree::<_, Add>::new(vec![10, 11, 12, 13, 14]);
+        let tree = SegTree::<_, Sum>::new(vec![10, 11, 12, 13, 14]);
         assert_eq!(tree.store, vec![60, 33, 27, 21, 12, 13, 14, 10, 11]);
-        let tree = SegTree::<_, Add>::new(vec![4, 3, 2, 1, 2, 3, 4]);
+        let tree = SegTree::<_, Sum>::new(vec![4, 3, 2, 1, 2, 3, 4]);
         assert_eq!(tree.store, vec![19, 10, 9, 7, 3, 5, 4, 4, 3, 2, 1, 2, 3]);
-        let _ = SegTree::<i32, Add>::new(vec![]);
+        let _ = SegTree::<i32, Sum>::new(vec![]);
     }
 
     #[test]
     fn range_sum() {
-        let tree = SegTree::<_, Add>::new(vec![10, 11, 12, 13, 14]);
+        let tree = SegTree::<_, Sum>::new(vec![10, 11, 12, 13, 14]);
         assert_eq!(tree.query(3..5), Some(27));
         assert_eq!(tree.query(1..5), Some(50));
         assert_eq!(tree.query(..5), Some(60));
         assert_eq!(tree.query(..), Some(60));
         assert_eq!(tree.query(1..=3), Some(36));
-        let tree = SegTree::<i32, Add>::new(vec![]);
+        let tree = SegTree::<i32, Sum>::new(vec![]);
         assert_eq!(tree.query(..), None);
     }
 
     #[test]
     fn update() {
-        let mut tree = SegTree::<_, Add>::new(vec![10, 11, 12, 13, 14]);
+        let mut tree = SegTree::<_, Sum>::new(vec![10, 11, 12, 13, 14]);
         tree.update(.., 3);
         assert_eq!(tree.query(..), Some(13 + 14 + 15 + 16 + 17));
         tree.update(..3, 1);
