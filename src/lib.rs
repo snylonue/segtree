@@ -128,7 +128,11 @@ impl<T: Clone, M: Monoid<T>> SegTree<T, M> {
 
 #[cfg(test)]
 mod test {
-    use crate::{operation::Sum, SegTree};
+
+    use crate::{
+        operation::{MonoidType, Sum},
+        SegTree,
+    };
 
     #[test]
     fn build() {
@@ -158,5 +162,20 @@ mod test {
         assert_eq!(tree.query(..), Some(13 + 14 + 15 + 16 + 17));
         tree.update(..3, 1);
         assert_eq!(tree.query(..), Some(14 + 15 + 16 + 16 + 17));
+    }
+
+    #[test]
+    fn monoid_type() {
+        let add = MonoidType {
+            zero: 0u32,
+            op: |a: &'_ u32, b: &'_ u32| a + b,
+        };
+
+        let tree = SegTree::new(vec![1, 2, 1876, 911, 11], add);
+        assert_eq!(tree.query(..3), Some(1 + 2 + 1876));
+        assert_eq!(
+            tree.query(..),
+            Some([1, 2, 1876, 911, 11].into_iter().sum())
+        )
     }
 }

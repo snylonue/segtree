@@ -34,3 +34,18 @@ where
         lhs * rhs
     }
 }
+
+pub struct MonoidType<T, F> {
+    pub zero: T,
+    pub op: F,
+}
+
+impl<T: Clone, F: Fn(&T, &T) -> T> Monoid<T> for MonoidType<T, F> {
+    fn unit(&self) -> T {
+        self.zero.clone()
+    }
+
+    fn combine(&self, lhs: &T, rhs: &T) -> T {
+        (self.op)(lhs, rhs)
+    }
+}
