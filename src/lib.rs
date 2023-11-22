@@ -87,7 +87,9 @@ impl<T: Clone, M: Monoid<T>> SegTree<T, M> {
             sum
         }
     }
+}
 
+impl<T, M: Monoid<T>> SegTree<T, M> {
     pub fn update(&mut self, range: impl RangeBounds<usize>, val: T) {
         let range = {
             let start = match range.start_bound() {
