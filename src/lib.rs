@@ -45,7 +45,7 @@ impl<T: Clone, M: Monoid<T>> SegTree<T, M> {
         } else {
             2_f64.powf((v.len() as f64).log2() + 1.0).ceil() as usize - 1
         };
-        let mut store = vec![monoid.unit(); len];
+        let mut store = vec![monoid.zero(); len];
         Self::build(&v, &mut store, &monoid, 1, v.len(), 1);
 
         Self {
@@ -78,7 +78,7 @@ impl<T: Clone, M: Monoid<T>> SegTree<T, M> {
             self.store[p - 1].clone()
         } else {
             let m = cur.start() + (cur.end() - cur.start()) / 2;
-            let mut sum = self.monoid.unit();
+            let mut sum = self.monoid.zero();
             if range.start <= m {
                 sum = self.monoid.combine(
                     &sum,

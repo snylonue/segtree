@@ -1,7 +1,7 @@
 use num_traits::{One, Zero};
 
 pub trait Monoid<T> {
-    fn unit(&self) -> T;
+    fn zero(&self) -> T;
     fn combine(&self, lhs: &T, rhs: &T) -> T;
 }
 
@@ -11,7 +11,7 @@ impl<N: Zero> Monoid<N> for Sum
 where
     for<'a> &'a N: std::ops::Add<Output = N>,
 {
-    fn unit(&self) -> N {
+    fn zero(&self) -> N {
         N::zero()
     }
 
@@ -26,7 +26,7 @@ impl<N: One> Monoid<N> for Product
 where
     for<'a> &'a N: std::ops::Mul<Output = N>,
 {
-    fn unit(&self) -> N {
+    fn zero(&self) -> N {
         N::one()
     }
 
@@ -41,7 +41,7 @@ pub struct MonoidType<T, F> {
 }
 
 impl<T: Clone, F: Fn(&T, &T) -> T> Monoid<T> for MonoidType<T, F> {
-    fn unit(&self) -> T {
+    fn zero(&self) -> T {
         self.zero.clone()
     }
 
