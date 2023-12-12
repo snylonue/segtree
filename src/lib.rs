@@ -10,6 +10,30 @@ pub struct SegTree<T, M> {
     monoid: M,
 }
 
+impl<T, M> SegTree<T, M> {
+    fn compute_range(&self, range: impl RangeBounds<usize>) -> Option<Range<usize>> {
+        let range = {
+            let start = match range.start_bound() {
+                Bound::Included(s) => *s,
+                Bound::Excluded(s) => s + 1,
+                Bound::Unbounded => 0,
+            };
+            let end = match range.end_bound() {
+                Bound::Included(e) => e + 1,
+                Bound::Excluded(e) => *e,
+                Bound::Unbounded => self.len,
+            };
+            start..end
+        };
+
+        if range.is_empty() || range.end > self.len {
+            None
+        } else {
+            Some(range)
+        }
+    }
+}
+
 impl<T: Clone, M: Monoid<T>> SegTree<T, M> {
     pub fn new(v: Vec<T>, monoid: M) -> Self {
         let len = if v.is_empty() {
@@ -44,25 +68,9 @@ impl<T: Clone, M: Monoid<T>> SegTree<T, M> {
 
     /// Returns the sum of range (zero-indexed)
     pub fn query(&self, range: impl RangeBounds<usize>) -> Option<T> {
-        let range = {
-            let start = match range.start_bound() {
-                Bound::Included(s) => *s,
-                Bound::Excluded(s) => s + 1,
-                Bound::Unbounded => 0,
-            };
-            let end = match range.end_bound() {
-                Bound::Included(e) => e + 1,
-                Bound::Excluded(e) => *e,
-                Bound::Unbounded => self.len,
-            };
-            start..end
-        };
+        let range = self.compute_range(range)?;
 
-        if range.is_empty() || range.end > self.len {
-            None
-        } else {
-            Some(self.get_range_sum(0..=self.len - 1, range, 1))
-        }
+        Some(self.get_range_sum(0..=self.len - 1, range, 1))
     }
 
     fn get_range_sum(&self, cur: RangeInclusive<usize>, range: Range<usize>, p: usize) -> T {
@@ -91,22 +99,8 @@ impl<T: Clone, M: Monoid<T>> SegTree<T, M> {
 
 impl<T, M: Monoid<T>> SegTree<T, M> {
     pub fn update(&mut self, range: impl RangeBounds<usize>, val: T) {
-        let range = {
-            let start = match range.start_bound() {
-                Bound::Included(s) => *s,
-                Bound::Excluded(s) => s + 1,
-                Bound::Unbounded => 0,
-            };
-            let end = match range.end_bound() {
-                Bound::Included(e) => e + 1,
-                Bound::Excluded(e) => *e,
-                Bound::Unbounded => self.len,
-            };
-            start..end
-        };
-
-        if !(range.is_empty() || range.end > self.len) {
-            self.update_impl(0..=self.len - 1, range, 1, &val)
+        if let Some(range) = self.compute_range(range) {
+            self.update_impl(0..=self.len - 1, range, 1, &val);
         }
     }
 
