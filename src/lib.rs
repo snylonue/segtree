@@ -130,7 +130,6 @@ impl<T, M: Monoid<T>> SegTree<T, M> {
 
 #[cfg(test)]
 mod test {
-
     use crate::{
         operation::{MonoidType, Sum},
         SegTree,
